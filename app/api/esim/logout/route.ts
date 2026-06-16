@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getEsimApiUrl } from '@/app/lib/esimClient';
 import { getToken, clearToken } from '@/app/lib/esimAuth';
 
 export async function GET() {
@@ -9,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: 'No token found' }, { status: 401 });
     }
 
-    const res = await fetch(`${process.env.ESIM_API_BASE_URL}/logout`, {
+    const res = await fetch(getEsimApiUrl('/logout'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

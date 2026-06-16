@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getValidToken } from '@/app/lib/esimClient';
+import { getEsimApiUrl, getValidToken } from '@/app/lib/esimClient';
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     const token = await getValidToken();
 
-    const res = await fetch(`${process.env.ESIM_API_BASE_URL}/my-sim/${sim_id}/usage`, {
+    const res = await fetch(getEsimApiUrl(`/my-sim/${sim_id}/usage`), {
       method: 'GET',
       headers: {
         accept: 'application/json',

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getValidToken } from '@/app/lib/esimClient';
+import { getEsimApiUrl, getValidToken } from '@/app/lib/esimClient';
 import { supabase } from '@/app/lib/supabase';
 
 type CheckoutRequest = {
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
     orderId = createdOrderId;
 
     const token = await getValidToken();
-    const providerRes = await fetch(`${process.env.ESIM_API_BASE_URL}/package/purchase`, {
+    const providerRes = await fetch(getEsimApiUrl('/package/purchase'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

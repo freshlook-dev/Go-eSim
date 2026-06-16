@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getValidToken } from '@/app/lib/esimClient';
+import { getEsimApiUrl, getValidToken } from '@/app/lib/esimClient';
 
 let cachedData: unknown = null;
 let lastFetch = 0;
@@ -21,7 +21,7 @@ export async function GET() {
     // 🔥 Fetch fresh data
     const token = await getValidToken();
 
-    const res = await fetch(`${process.env.ESIM_API_BASE_URL}/pricing`, {
+    const res = await fetch(getEsimApiUrl('/pricing'), {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
