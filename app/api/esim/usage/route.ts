@@ -21,13 +21,19 @@ export async function POST(req: Request) {
 
     const data = await res.json();
 
-    return NextResponse.json({
-      status: res.status,
-      data,
-    });
+    return NextResponse.json(
+      {
+        status: res.status,
+        data,
+      },
+      { status: res.ok ? 200 : res.status }
+    );
   } catch (error: unknown) {
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Server error',
-    });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Server error',
+      },
+      { status: 500 }
+    );
   }
 }

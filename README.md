@@ -16,6 +16,18 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Recreate the Supabase database
+
+If the database was deleted or reset, recreate the required tables from the SQL bootstrap:
+
+1. Open your Supabase project dashboard.
+2. Go to SQL Editor.
+3. Paste the contents of `supabase/schema.sql`.
+4. Run the query.
+5. Confirm `.env.local` contains `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the same Supabase project.
+
+The app uses three tables: `users`, `orders`, and `esim_purchases`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

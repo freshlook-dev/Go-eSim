@@ -9,6 +9,37 @@ type TopupResult = {
   error?: string;
 };
 
+function getNestedValue(value: unknown, path: string[]) {
+  let current = value;
+
+  for (const key of path) {
+    if (!current || typeof current !== 'object' || !(key in current)) {
+      return null;
+    }
+
+    current = (current as Record<string, unknown>)[key];
+  }
+
+  return current;
+}
+
+function formatValue(value: unknown) {
+  if (value === null || value === undefined || value === '') {
+    return 'Not provided';
+  }
+
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+}
+
+function getResultMessage(result: TopupResult) {
+  const data = result.data as { message?: string; error?: string } | undefined;
+  return result.error || data?.message || data?.error || null;
+}
+
 export default function RefillPage() {
   const [iccid, setIccid] = useState('');
   const [packageTypeId, setPackageTypeId] = useState('');
@@ -27,7 +58,7 @@ export default function RefillPage() {
         body: JSON.stringify({ iccid, package_type_id: packageTypeId }),
       });
       const data = await res.json();
-      setResult(res.ok ? data : { error: data.error || 'Unable to check refill availability' });
+      setResult(res.ok ? data : { ...data, error: data.error || 'Unable to check refill availability' });
     } catch {
       setResult({ error: 'Unable to check refill availability' });
     } finally {
@@ -77,12 +108,6 @@ export default function RefillPage() {
                 />
               </label>
 
-              {result && (
-                <div className="mt-4 rounded-lg border border-white/15 bg-white/10 p-3 text-sm leading-6 text-blue-50">
-                  {result.error ? result.error : 'Refill availability response received.'}
-                </div>
-              )}
-
               <button
                 type="submit"
                 disabled={loading}
@@ -90,6 +115,48 @@ export default function RefillPage() {
               >
                 {loading ? 'Checking...' : 'Check refill'}
               </button>
+
+              {result && (
+                <div className="mt-4 rounded-xl border border-white/15 bg-white/10 p-4 text-sm leading-6 text-blue-50">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-black text-white">Provider response</p>
+                    {result.status && (
+                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black">
+                        HTTP {result.status}
+                      </span>
+                    )}
+                  </div>
+
+                  {getResultMessage(result) && (
+                    <div className="mt-3 rounded-lg bg-red-500/15 p-3 font-bold text-red-100">
+                      {getResultMessage(result)}
+                    </div>
+                  )}
+
+                  <div className="mt-4 grid gap-3">
+                    {[
+                      ['Can top up', ['data', 'can_topup']],
+                      ['Status', ['data', 'status']],
+                      ['ICCID', ['data', 'iccid']],
+                      ['Package ID', ['data', 'package_type_id']],
+                    ].map(([label, path]) => (
+                      <div key={label as string} className="rounded-lg bg-white/10 p-3">
+                        <p className="text-xs font-black uppercase tracking-[0.12em] text-blue-100">{label as string}</p>
+                        <p className="mt-1 break-all font-bold text-white">
+                          {formatValue(getNestedValue(result.data, path as string[]))}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <details className="mt-4">
+                    <summary className="cursor-pointer font-black text-white">Raw response</summary>
+                    <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-[#071b42] p-4 text-xs leading-5 text-white">
+                      {JSON.stringify(result.data ?? result, null, 2)}
+                    </pre>
+                  </details>
+                </div>
+              )}
             </form>
           </div>
         </div>
