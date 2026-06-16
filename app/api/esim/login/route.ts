@@ -2,6 +2,27 @@ import { NextResponse } from 'next/server';
 import { getEsimApiUrl } from '@/app/lib/esimClient';
 import { setToken } from '@/app/lib/esimAuth';
 
+function extractToken(data: unknown) {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const response = data as Record<string, unknown>;
+  const nestedData = response.data && typeof response.data === 'object'
+    ? response.data as Record<string, unknown>
+    : null;
+
+  const token =
+    response.access_token ||
+    response.token ||
+    response.bearer_token ||
+    nestedData?.access_token ||
+    nestedData?.token ||
+    nestedData?.bearer_token;
+
+  return typeof token === 'string' && token.trim() ? token : null;
+}
+
 export async function GET() {
   try {
     const email = process.env.ESIM_API_EMAIL?.trim();
@@ -24,19 +45,26 @@ export async function GET() {
 
     const data = await res.json();
 
-    const token = data?.access_token;
+    const token = extractToken(data);
 
     if (token) {
       setToken(token);
     }
 
-    return NextResponse.json({
-      status: res.status,
-      data,
-    });
+    return NextResponse.json(
+      {
+        status: res.status,
+        token_saved: Boolean(token),
+        data,
+      },
+      { status: res.ok ? 200 : res.status }
+    );
   } catch (error: unknown) {
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Server error',
-    });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Server error',
+      },
+      { status: 500 }
+    );
   }
 }

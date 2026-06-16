@@ -7,7 +7,10 @@ export function getEsimApiUrl(path: string) {
     throw new Error('Missing ESIM_API_BASE_URL environment variable.');
   }
 
-  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+  const trimmedBaseUrl = baseUrl.replace(/\/+$/, '');
+  const normalizedBaseUrl = trimmedBaseUrl.endsWith('/developer')
+    ? `${trimmedBaseUrl}/reseller`
+    : trimmedBaseUrl;
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
   return `${normalizedBaseUrl}${normalizedPath}`;
@@ -24,6 +27,40 @@ function getEsimCredentials() {
   return { email, password };
 }
 
+function getProviderMessage(data: unknown) {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const response = data as Record<string, unknown>;
+  const nestedData = response.data && typeof response.data === 'object'
+    ? response.data as Record<string, unknown>
+    : null;
+
+  return response.message || response.error || nestedData?.message || nestedData?.error || null;
+}
+
+function extractToken(data: unknown) {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const response = data as Record<string, unknown>;
+  const nestedData = response.data && typeof response.data === 'object'
+    ? response.data as Record<string, unknown>
+    : null;
+
+  const token =
+    response.access_token ||
+    response.token ||
+    response.bearer_token ||
+    nestedData?.access_token ||
+    nestedData?.token ||
+    nestedData?.bearer_token;
+
+  return typeof token === 'string' && token.trim() ? token : null;
+}
+
 async function loginAndGetToken() {
   const credentials = getEsimCredentials();
 
@@ -36,10 +73,12 @@ async function loginAndGetToken() {
   });
 
   const data = await res.json();
-  const token = data?.access_token;
+  const token = extractToken(data);
 
   if (!token) {
-    throw new Error('Failed to get token');
+    const providerMessage = getProviderMessage(data);
+    const details = providerMessage ? `: ${providerMessage}` : '';
+    throw new Error(`Failed to get token (${res.status})${details}`);
   }
 
   setToken(token);
@@ -47,6 +86,12 @@ async function loginAndGetToken() {
 }
 
 export async function getValidToken() {
+  const configuredToken = process.env.ESIM_API_TOKEN?.trim();
+
+  if (configuredToken) {
+    return configuredToken;
+  }
+
   let token = getToken();
 
   if (!token) {

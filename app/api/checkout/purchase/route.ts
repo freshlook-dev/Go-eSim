@@ -24,6 +24,17 @@ type ProviderPurchaseData = {
     manual_code?: string;
     activation_code?: string;
     status?: string;
+    message?: string;
+    sim?: {
+      id?: string;
+      iccid?: string;
+      status?: string;
+      universal_link?: string;
+      qr_code?: string;
+      qrcode?: string;
+      manual_code?: string;
+      activation_code?: string;
+    };
   };
   message?: string;
 };
@@ -157,10 +168,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const qrValue = purchaseData.qr_code || purchaseData.qrcode || purchaseData.universal_link || null;
-    const manualCode = purchaseData.manual_code || purchaseData.activation_code || null;
-    const iccid = purchaseData.iccid || null;
-    const providerPackageId = purchaseData.id || purchaseData.sim_id || packageId;
+    const sim = purchaseData.sim || {};
+    const qrValue = sim.qr_code || sim.qrcode || sim.universal_link || purchaseData.qr_code || purchaseData.qrcode || purchaseData.universal_link || null;
+    const manualCode = sim.manual_code || sim.activation_code || purchaseData.manual_code || purchaseData.activation_code || null;
+    const iccid = sim.iccid || purchaseData.iccid || null;
+    const providerPackageId = sim.id || purchaseData.sim_id || purchaseData.id || packageId;
 
     const { data: esimPurchase, error: esimPurchaseError } = await supabase
       .from('esim_purchases')

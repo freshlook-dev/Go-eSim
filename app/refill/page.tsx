@@ -42,7 +42,6 @@ function getResultMessage(result: TopupResult) {
 
 export default function RefillPage() {
   const [iccid, setIccid] = useState('');
-  const [packageTypeId, setPackageTypeId] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TopupResult | null>(null);
 
@@ -55,7 +54,7 @@ export default function RefillPage() {
       const res = await fetch('/api/esim/can-topup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ iccid, package_type_id: packageTypeId }),
+        body: JSON.stringify({ iccid }),
       });
       const data = await res.json();
       setResult(res.ok ? data : { ...data, error: data.error || 'Unable to check refill availability' });
@@ -80,8 +79,8 @@ export default function RefillPage() {
               </p>
               <h1 className="text-4xl font-black text-[#102b68] sm:text-5xl">Add more data to an active eSIM</h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[#53637f]">
-                Enter your eSIM ICCID and the package ID you want to add. Go eSim will check whether
-                the partner API allows that top-up before you continue.
+                Enter your eSIM ICCID. Go eSim will check whether the partner API allows a top-up
+                before you continue.
               </p>
             </div>
 
@@ -93,17 +92,6 @@ export default function RefillPage() {
                   onChange={(event) => setIccid(event.target.value)}
                   required
                   placeholder="89XXXXXXXXXXX"
-                  className="rounded-lg border border-white/10 bg-white px-4 py-3 text-sm text-[#102b68] outline-none focus:border-[#ef1b2d]"
-                />
-              </label>
-
-              <label className="mt-4 grid gap-2 text-sm font-bold">
-                Package ID
-                <input
-                  value={packageTypeId}
-                  onChange={(event) => setPackageTypeId(event.target.value)}
-                  required
-                  placeholder="Package UUID"
                   className="rounded-lg border border-white/10 bg-white px-4 py-3 text-sm text-[#102b68] outline-none focus:border-[#ef1b2d]"
                 />
               </label>
@@ -135,10 +123,9 @@ export default function RefillPage() {
 
                   <div className="mt-4 grid gap-3">
                     {[
-                      ['Can top up', ['data', 'can_topup']],
+                      ['Top-up available', ['data', 'topup_available']],
                       ['Status', ['data', 'status']],
                       ['ICCID', ['data', 'iccid']],
-                      ['Package ID', ['data', 'package_type_id']],
                     ].map(([label, path]) => (
                       <div key={label as string} className="rounded-lg bg-white/10 p-3">
                         <p className="text-xs font-black uppercase tracking-[0.12em] text-blue-100">{label as string}</p>

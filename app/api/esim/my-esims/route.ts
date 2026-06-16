@@ -1,32 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getEsimApiUrl, getValidToken } from '@/app/lib/esimClient';
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { iccid } = await req.json();
-
-    if (!iccid) {
-      return NextResponse.json(
-        { error: 'iccid is required' },
-        { status: 400 }
-      );
-    }
-
     const token = await getValidToken();
 
-    const res = await fetch(
-      getEsimApiUrl('/can-topup-esim'),
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          iccid,
-        }),
-      }
-    );
+    const res = await fetch(getEsimApiUrl('/my-esims'), {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     const data = await res.json();
 

@@ -28,6 +28,17 @@ If the database was deleted or reset, recreate the required tables from the SQL 
 
 The app uses three tables: `users`, `orders`, and `esim_purchases`.
 
+## Provider environment variables
+
+The eSIM provider API needs these variables in local `.env.local` and in your deployment platform:
+
+```env
+ESIM_API_BASE_URL=https://portal.esimcard.com/api/developer/reseller
+ESIM_API_TOKEN=your_provider_api_token
+```
+
+If `ESIM_API_TOKEN` is not set, the app falls back to `ESIM_API_EMAIL` and `ESIM_API_PASSWORD` login.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

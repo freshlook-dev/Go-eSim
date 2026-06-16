@@ -93,13 +93,48 @@ function ResultCard({
   );
 }
 
+function EsimList({ result }: { result: LookupResult | null }) {
+  const providerResponse = result?.data && typeof result.data === 'object'
+    ? (result.data as { data?: unknown }).data
+    : null;
+  const rows = providerResponse && typeof providerResponse === 'object'
+    ? (providerResponse as { data?: unknown }).data
+    : null;
+  const esims = Array.isArray(rows) ? rows.slice(0, 8) : [];
+
+  if (!result || esims.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 grid gap-3 md:grid-cols-2">
+      {esims.map((item, index) => {
+        const esim = item && typeof item === 'object' ? item as Record<string, unknown> : {};
+
+        return (
+          <div key={String(esim.id || index)} className="rounded-lg bg-[#f6f8ff] p-3">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-[#66748d]">eSIM UUID</p>
+            <p className="mt-1 break-all font-bold text-[#102b68]">{formatValue(esim.id)}</p>
+            <p className="mt-3 text-xs font-black uppercase tracking-[0.12em] text-[#66748d]">ICCID</p>
+            <p className="mt-1 break-all font-bold text-[#102b68]">{formatValue(esim.iccid)}</p>
+            <p className="mt-3 text-xs font-black uppercase tracking-[0.12em] text-[#66748d]">Status</p>
+            <p className="mt-1 font-bold text-[#102b68]">{formatValue(esim.status)}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CheckBalancePage() {
   const [simId, setSimId] = useState('');
   const [orderId, setOrderId] = useState('');
   const [loadingWallet, setLoadingWallet] = useState(false);
+  const [loadingEsims, setLoadingEsims] = useState(false);
   const [loadingUsage, setLoadingUsage] = useState(false);
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [walletResult, setWalletResult] = useState<LookupResult | null>(null);
+  const [esimsResult, setEsimsResult] = useState<LookupResult | null>(null);
   const [usageResult, setUsageResult] = useState<LookupResult | null>(null);
   const [orderResult, setOrderResult] = useState<LookupResult | null>(null);
 
@@ -115,6 +150,21 @@ export default function CheckBalancePage() {
       setWalletResult({ error: 'Unable to check provider balance' });
     } finally {
       setLoadingWallet(false);
+    }
+  }
+
+  async function handleEsims() {
+    setLoadingEsims(true);
+    setEsimsResult(null);
+
+    try {
+      const res = await fetch('/api/esim/my-esims');
+      const data = await res.json();
+      setEsimsResult(res.ok ? data : { ...data, error: data.error || 'Unable to load eSIMs' });
+    } catch {
+      setEsimsResult({ error: 'Unable to load eSIMs' });
+    } finally {
+      setLoadingEsims(false);
     }
   }
 
@@ -168,6 +218,7 @@ export default function CheckBalancePage() {
             <h1 className="text-4xl font-black text-[#102b68] sm:text-5xl">Look up provider balance, usage, or order status</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[#53637f]">
               Use this page to verify the provider connection and inspect eSIM details while payment activation is pending.
+              Usage checks need the provider eSIM UUID, not the ICCID number.
             </p>
           </div>
 
@@ -198,16 +249,44 @@ export default function CheckBalancePage() {
             />
           </div>
 
+          <div className="mt-5 rounded-2xl border border-[#dbe4ff] bg-white p-6 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="text-xl font-black text-[#102b68]">My eSIMs</h2>
+                <p className="mt-2 text-sm leading-6 text-[#53637f]">
+                  Find the provider eSIM UUID to use for usage checks. The ICCID alone is not accepted by the usage API.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleEsims}
+                disabled={loadingEsims}
+                className="rounded-lg bg-[#102b68] px-5 py-3 text-sm font-black text-white transition hover:bg-[#2a6fc5] disabled:bg-[#66748d]"
+              >
+                {loadingEsims ? 'Loading...' : 'Load eSIMs'}
+              </button>
+            </div>
+            <ResultCard
+              title="My eSIMs response"
+              result={esimsResult}
+              highlights={[
+                { label: 'Total', path: ['data', 'meta', 'total'] },
+                { label: 'Current page', path: ['data', 'meta', 'currentPage'] },
+              ]}
+            />
+            <EsimList result={esimsResult} />
+          </div>
+
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <form onSubmit={handleUsage} className="rounded-2xl border border-[#dbe4ff] bg-[#f6f8ff] p-6 shadow-sm">
               <h2 className="text-xl font-black text-[#102b68]">eSIM usage</h2>
               <label className="mt-5 grid gap-2 text-sm font-bold text-[#102b68]">
-                eSIM ID
+                eSIM UUID
                 <input
                   value={simId}
                   onChange={(event) => setSimId(event.target.value)}
                   required
-                  placeholder="Partner sim_id"
+                  placeholder="74806e1d-e37f-402c-8ca5-37e983cba5d5"
                   className="rounded-lg border border-[#dbe4ff] bg-white px-4 py-3 text-sm text-[#102b68] outline-none focus:border-[#ef1b2d]"
                 />
               </label>
@@ -223,9 +302,10 @@ export default function CheckBalancePage() {
                 result={usageResult}
                 highlights={[
                   { label: 'Status', path: ['data', 'status'] },
-                  { label: 'Used data', path: ['data', 'used_data'] },
-                  { label: 'Remaining data', path: ['data', 'remaining_data'] },
-                  { label: 'Expires at', path: ['data', 'expired_at'] },
+                  { label: 'Initial data', path: ['data', 'initial_data_quantity'] },
+                  { label: 'Initial unit', path: ['data', 'initial_data_unit'] },
+                  { label: 'Remaining data', path: ['data', 'rem_data_quantity'] },
+                  { label: 'Remaining unit', path: ['data', 'rem_data_unit'] },
                 ]}
               />
             </form>
