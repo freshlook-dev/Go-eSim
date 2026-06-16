@@ -39,6 +39,10 @@ ESIM_API_TOKEN=your_provider_api_token
 
 If `ESIM_API_TOKEN` is not set, the app falls back to `ESIM_API_EMAIL` and `ESIM_API_PASSWORD` login.
 
+## Customer accounts
+
+Customer login/signup uses Supabase Auth with email and password. In Supabase, enable the Email provider under Authentication settings. Orders appear in `/account` when the authenticated email matches the email used during checkout.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

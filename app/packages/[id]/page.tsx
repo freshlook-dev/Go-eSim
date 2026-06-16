@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { calculateSellPrice, formatEuroPrice, toPriceNumber } from '@/app/lib/pricing';
+import { supabase } from '@/app/lib/supabase';
 
 type Package = {
   id: string;
@@ -46,6 +47,14 @@ export default function PackagePage() {
       })
       .catch(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) {
+        setEmail(data.user.email);
+      }
+    });
+  }, []);
 
   const handleBuy = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

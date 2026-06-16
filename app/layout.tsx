@@ -52,6 +52,9 @@ export default function RootLayout({
               <Link href="/check-balance" className="transition hover:text-[#ef1b2d]">
                 Check balance
               </Link>
+              <Link href="/account" className="transition hover:text-[#ef1b2d]">
+                Account
+              </Link>
               <a href="#how-it-works" className="transition hover:text-[#ef1b2d]">
                 How it works
               </a>
@@ -61,10 +64,10 @@ export default function RootLayout({
             </nav>
 
             <Link
-              href="/"
+              href="/account"
               className="rounded-lg bg-[#ef1b2d] px-4 py-2 text-sm font-black text-white shadow-sm shadow-red-500/20 transition hover:bg-[#d91628]"
             >
-              Browse plans
+              My account
             </Link>
           </div>
         </header>
@@ -96,6 +99,9 @@ export default function RootLayout({
                 </Link>
                 <Link href="/check-balance" className="hover:text-[#ef1b2d]">
                   Check balance
+                </Link>
+                <Link href="/account" className="hover:text-[#ef1b2d]">
+                  Account
                 </Link>
                 <a href="#how-it-works" className="hover:text-[#ef1b2d]">
                   How it works

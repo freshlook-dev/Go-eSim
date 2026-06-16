@@ -82,13 +82,6 @@ function ResultCard({
           </div>
         ))}
       </div>
-
-      <details className="mt-4">
-        <summary className="cursor-pointer font-black text-[#ef1b2d]">Raw response</summary>
-        <pre className="mt-3 max-h-80 overflow-auto rounded-lg bg-[#102b68] p-4 text-xs leading-5 text-white">
-          {JSON.stringify(result.data ?? result, null, 2)}
-        </pre>
-      </details>
     </div>
   );
 }

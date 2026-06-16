@@ -135,13 +135,6 @@ export default function RefillPage() {
                       </div>
                     ))}
                   </div>
-
-                  <details className="mt-4">
-                    <summary className="cursor-pointer font-black text-white">Raw response</summary>
-                    <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-[#071b42] p-4 text-xs leading-5 text-white">
-                      {JSON.stringify(result.data ?? result, null, 2)}
-                    </pre>
-                  </details>
                 </div>
               )}
             </form>
